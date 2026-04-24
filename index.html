@@ -1,0 +1,87 @@
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>API para Zuplo </title>
+        <link rel="stylesheet" href="estilo.css">
+        
+    </head>
+    
+    <body>
+
+        <h1>Test API</h1>
+        
+        <!-- Sección para Guardar -->
+        <div>
+            <input type="text" id="nuevoTexto" placeholder="Escribe algo...">
+            <button onclick="guardarMensaje()">Guardar en DB</button>
+        </div>
+
+        <hr>
+
+        <!-- Sección para Ver -->
+        <button onclick="cargarMensajes()" style="background: #28a745;">Actualizar Lista</button>
+        <div id="listaMensajes"></div>
+
+        <script>
+    // URL correcta de tu WSO2 Gateway
+    //const API_URL = 'https://localhost:8243/api/1/mensajes';
+    const API_URL = 'http://localhost:8280/api/2.0.0/mensajes'; // Usa 8280, NO 8243
+
+    
+    // REEMPLAZA ESTO con el token que generaste en el Developer Portal
+    //const MI_TOKEN = 'eyJ4NXQjUzI1NiI6Ik16QXpNVEZqT0RRMU1ETmpPVFUxWkRBNE5HUTVNRGt6WXpFM01XSTRNbVJsWkdVM1l6WmpZams0WkdSa00yUmhNbUl3TWpBeFl6SmxNR0pqTmpkbU53PT0iLCJraWQiOiJnYXRld2F5X2NlcnRpZmljYXRlX2FsaWFzIiwidHlwIjoiSldUIiwiYWxnIjoiUlMyNTYifQ==.eyJzdWIiOiJhZG1pbkBjYXJib24uc3VwZXIiLCJhcHBsaWNhdGlvbiI6eyJpZCI6MSwidXVpZCI6IjVjYWExNTM5LTZkMGQtNDBiOC1hNGM3LTllYTRmMDU4MDY2NCJ9LCJpc3MiOiJodHRwczpcL1wvbG9jYWxob3N0Ojk0NDNcL29hdXRoMlwvdG9rZW4iLCJrZXl0eXBlIjoiUFJPRFVDVElPTiIsInBlcm1pdHRlZFJlZmVyZXIiOiIiLCJleHAiOjE3Nzg3Njk1ODQsInRva2VuX3R5cGUiOiJhcGlLZXkiLCJwZXJtaXR0ZWRJUCI6IiIsImlhdCI6MTc3MDk5MzU4NCwianRpIjoiODFkNzNlNGQtZDUxMS00Y2FjLTg5MjgtNDMzZjQ1MjIwODVhIn0=.tCpEHUdh65qNfKBkBJiYy3IzXqG_f0ayfFGf3SZi6odFg_KbxVWZWI5A28u-FOCGqPz-GbAUZ5xh6ziIfQGB89G9oSZiIKF5VCnzTgyu-RlOw8XiPEuC2v_3DuichboOXqJAAF4fcaqXqMRt_OA5GrDATVDC2fVv6XOO1KI8Dqlz6SXXttuDqByoCC_TAdtQ9bsvFORPGyEbxLqsWtSLVa9mM8LpidyOWGbeF4KL7nEumI9Bmtvd9JjciOaEDY8hZdOBmOU7KfSpQLzQlymVta31fPhkWlbNm5dzH_hXeCdrwe9SOH_VBl0slD33znnDOryzuOfKpzymbgGb-OUX5w=='; 
+    const MI_TOKEN = 'eyJ4NXQiOiJNekF6TVRGak9EUTFNRE5qT1RVMVpEQTROR1E1TURrell6RTNNV0k0TW1SbFpHVTNZelpqWWprNFpHUmtNMlJoTW1Jd01qQXhZekpsTUdKak5qZG1OdyIsImtpZCI6Ik16QXpNVEZqT0RRMU1ETmpPVFUxWkRBNE5HUTVNRGt6WXpFM01XSTRNbVJsWkdVM1l6WmpZams0WkdSa00yUmhNbUl3TWpBeFl6SmxNR0pqTmpkbU53X1JTMjU2IiwidHlwIjoiYXQrand0IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIzM2EwN2FjMy0zMTQ4LTRkMTYtYTUwYy1iYWQ5YzhlN2FmMjIiLCJhdXQiOiJBUFBMSUNBVElPTiIsImF1ZCI6ImJtVjBFUXh1VU1hQ0I2b0plTldNMERHTzdBY2EiLCJuYmYiOjE3NzI0NzYwODEsImF6cCI6ImJtVjBFUXh1VU1hQ0I2b0plTldNMERHTzdBY2EiLCJzY29wZSI6ImRlZmF1bHQiLCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo5NDQzL29hdXRoMi90b2tlbiIsImV4cCI6MTc3MjQ3OTY4MSwiaWF0IjoxNzcyNDc2MDgxLCJqdGkiOiI5ODY4Mzk4YS1hYzFjLTRjMGEtOWMxZC02YTk1ZDkzNzRjOTkiLCJjbGllbnRfaWQiOiJibVYwRVF4dVVNYUNCNm9KZU5XTTBER083QWNhIn0.UtU5SC2HU2ayxcU0YYCYsLc8Te5oBfNL4u55lCEKLYrCmMYMrQF23zlJ-gtH_HtPMvu5BD6HC6J_TLDllfg6AsjiVNIkz6K0vhHeqVvtSSu7rHnZmaAmF5eYtMhe97ILyRz_aLilV-sgJgDqWvYArmihR4WAp45aRfFnBYebdL_NxilIw261FpBWYLrGFTv2ppT8M5HLrH3sIQQneFf-tNfKY8730Xnjmkt7ZZAzDibQ-lnDxJMb9eGdfrpuwcDFalDdugaiuGjkU65Rb76sk4lqfxReMAyiJWvvX5ZbFMjvvvP-VHOGMxcobQr0VGi1N9FV11fr0Ly7iccctcfMww';
+
+    // FUNCIÓN 1: Guardar datos (POST)
+    async function guardarMensaje() {
+        const input = document.getElementById('nuevoTexto');
+        if (!input.value) return alert("Escribe algo");
+
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${MI_TOKEN}` // <--- Token agregado
+                },
+                body: JSON.stringify({ texto: input.value})
+            });
+
+            input.value = ''; 
+            cargarMensajes(); 
+        } catch (error) {
+            console.error("Error al guardar:", error);
+        }
+    }
+
+    // FUNCIÓN 2: Obtener datos (GET)
+    async function cargarMensajes() {
+        try {
+            const res = await fetch(API_URL, {
+                headers: {
+                    'Authorization': `Bearer ${MI_TOKEN}` // <--- Token agregado
+                }
+            });
+            
+            if (!res.ok) throw new Error("Error en la respuesta de WSO2");
+
+            const mensajes = await res.json();
+            
+            const contenedor = document.getElementById('listaMensajes');
+            contenedor.innerHTML = mensajes.map(m => 
+                `<div class="mensaje-item">${m.texto}</div>`
+            ).reverse().join('');
+        } catch (error) {
+            console.error("Error al cargar:", error);
+            document.getElementById('listaMensajes').innerHTML = "Error al conectar con WSO2";
+        }
+    }
+
+    // Cargar al iniciar
+    cargarMensajes();
+</script>
+
+        
+    </body>
+    </html>
